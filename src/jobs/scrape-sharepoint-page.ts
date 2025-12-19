@@ -1,7 +1,7 @@
 
-import { extractTable, extractLinks } from '../utils/dom';
-import { writeJson } from '../utils/storage';
-import { createAuthenticatedBrowser } from '../utils/auth-check';
+import { extractTable, extractLinks } from '../utils/dom.js';
+import { writeJson } from '../utils/storage.js';
+import { createAuthenticatedBrowser } from '../utils/auth-check.js';
 
 const url = process.argv[2];
 

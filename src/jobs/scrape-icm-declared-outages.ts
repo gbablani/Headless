@@ -1,7 +1,7 @@
 
-import { writeJson } from '../utils/storage';
-import { toCsv } from '../utils/csv';
-import { createAuthenticatedBrowser } from '../utils/auth-check';
+import { writeJson } from '../utils/storage.js';
+import { toCsv } from '../utils/csv.js';
+import { createAuthenticatedBrowser } from '../utils/auth-check.js';
 
 // Usage: pnpm run scrape:icm -- https://portal.microsofticm.com/imp/v3/outages/dashboard/azure/declaredoutages
 const targetUrl = process.argv[2] || 'https://portal.microsofticm.com/imp/v3/outages/dashboard/azure/declaredoutages';
