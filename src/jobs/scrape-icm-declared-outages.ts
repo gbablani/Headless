@@ -1,7 +1,7 @@
 
-import { chromium } from 'playwright';
 import { writeJson } from '../utils/storage';
 import { toCsv } from '../utils/csv';
+import { createAuthenticatedBrowser } from '../utils/auth-check';
 
 // Usage: pnpm run scrape:icm -- https://portal.microsofticm.com/imp/v3/outages/dashboard/azure/declaredoutages
 const targetUrl = process.argv[2] || 'https://portal.microsofticm.com/imp/v3/outages/dashboard/azure/declaredoutages';
@@ -10,8 +10,9 @@ const targetUrl = process.argv[2] || 'https://portal.microsofticm.com/imp/v3/out
 const HINTS = ['declaredoutages', 'outages', 'dashboard', 'imp/v3'];
 
 (async () => {
-  const browser = await chromium.launch();
-  const context = await browser.newContext({ storageState: 'auth.json' });
+  console.log('🚀 Starting ICM Declared Outages scraper...\n');
+  
+  const { browser, context } = await createAuthenticatedBrowser();
   const page = await context.newPage();
 
   const captured: Array<{ url: string; data: any }> = [];
@@ -63,6 +64,7 @@ const HINTS = ['declaredoutages', 'outages', 'dashboard', 'imp/v3'];
   const csvText = toCsv(normalized);
   await writeJson('icm/declared_outages.csv', csvText);
 
-  console.log(`Scraped ${normalized.length} records from ICM Declared Outages.`);
+  console.log(`✅ Scraped ${normalized.length} records from ICM Declared Outages.`);
+  console.log('✅ Scraping complete!\n');
   await browser.close();
 })();
