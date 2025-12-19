@@ -1,6 +1,6 @@
 
-import { writeJson } from '../utils/storage';
-import { createAuthenticatedBrowser } from '../utils/auth-check';
+import { writeJson } from '../utils/storage.js';
+import { createAuthenticatedBrowser } from '../utils/auth-check.js';
 
 const url = process.argv[2];
 

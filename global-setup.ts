@@ -1,7 +1,8 @@
 
-import { chromium, FullConfig } from '@playwright/test';
+import { chromium } from 'playwright';
+import type { FullConfig } from '@playwright/test';
 import 'dotenv/config';
-import { promptForCredentials } from './src/utils/auth-prompt';
+import { promptForCredentials } from './src/utils/auth-prompt.js';
 
 export default async function globalSetup(_config: FullConfig) {
   console.log('\n🔐 Starting Entra ID authentication setup...\n');
