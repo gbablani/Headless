@@ -1,0 +1,8 @@
+
+node_modules/
+auth.json
+.env
+dist/
+playwright-report/
+traces/
+out/
