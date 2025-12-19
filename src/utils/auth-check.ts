@@ -25,7 +25,7 @@ export async function ensureAuthenticated(): Promise<void> {
     console.error('❌ Authentication state appears to be invalid or corrupted!');
     console.error('\nPlease re-run authentication setup:');
     console.error('  npm run auth:bootstrap\n');
-    console.error(`Error: ${err}`);
+    console.error('Error details:', err instanceof Error ? err.message : String(err));
     process.exit(1);
   }
 }

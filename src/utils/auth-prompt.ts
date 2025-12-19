@@ -52,8 +52,8 @@ export async function promptForCredentials(): Promise<Credentials> {
  */
 export function hasStoredAuth(): boolean {
   try {
-    const fs = require('fs');
-    return fs.existsSync('auth.json');
+    const { existsSync } = require('fs');
+    return existsSync('auth.json');
   } catch {
     return false;
   }
