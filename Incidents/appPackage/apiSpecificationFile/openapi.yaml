@@ -1,0 +1,263 @@
+openapi: 3.0.4
+info:
+  title: Intranet Browser Agent - Subset
+  description: Browse intranet pages using a headed browser running on the user's local machine. The broker relays tool calls to a locally-connected Playwright Runner.
+  version: 0.3.0
+servers:
+  - url: https://e189-198-134-98-50.ngrok-free.app
+    description: Broker endpoint (replace with your ngrok / devtunnel URL)
+paths:
+  /mcp/tools/sessionStatus:
+    post:
+      summary: Check if the Runner is connected and the intranet session is authenticated.
+      operationId: sessionStatus
+      x-openai-isConsequential: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionId:
+                  type: string
+                  description: Session identifier
+                  default: default
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  runnerConnected:
+                    type: boolean
+                  authenticated:
+                    type: boolean
+                  sessionId:
+                    type: string
+                  expiresAt:
+                    type: string
+                    nullable: true
+                  openPages:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    nullable: true
+  /mcp/tools/bootstrapLogin:
+    post:
+      summary: Open a browser window on the user's machine for interactive intranet sign-in.
+      operationId: bootstrapLogin
+      x-openai-isConsequential: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionId:
+                  type: string
+                  default: default
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  pageId:
+                    type: string
+                    nullable: true
+  /mcp/tools/navigate:
+    post:
+      summary: Navigate to a URL. Omit pageId to open a new tab; provide it to reuse an existing tab.
+      operationId: navigate
+      x-openai-isConsequential: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - url
+              type: object
+              properties:
+                sessionId:
+                  type: string
+                  default: default
+                url:
+                  type: string
+                  description: The URL to navigate to
+                pageId:
+                  type: string
+                  description: Tab to reuse (omit for new tab)
+                  nullable: true
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  pageId:
+                    type: string
+                  finalUrl:
+                    type: string
+  /mcp/tools/inspectDom:
+    post:
+      summary: Return a JSON representation of the DOM for a page.
+      operationId: inspectDom
+      x-openai-isConsequential: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - pageId
+              type: object
+              properties:
+                sessionId:
+                  type: string
+                  default: default
+                pageId:
+                  type: string
+                  description: Tab to inspect
+                url:
+                  type: string
+                  description: Optional URL to navigate before inspecting
+                  nullable: true
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pageId:
+                    type: string
+                  url:
+                    type: string
+                  title:
+                    type: string
+                  document:
+                    type: object
+                    description: DOM tree
+  /mcp/tools/selectElement:
+    post:
+      summary: Resolve a CSS selector to a stable element handle reference.
+      operationId: selectElement
+      x-openai-isConsequential: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - pageId
+                - selector
+              type: object
+              properties:
+                sessionId:
+                  type: string
+                  default: default
+                pageId:
+                  type: string
+                  description: Tab containing the element
+                selector:
+                  type: string
+                  description: CSS selector
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  elementId:
+                    type: string
+                  pageId:
+                    type: string
+                  selector:
+                    type: string
+  /mcp/tools/clickElement:
+    post:
+      summary: Click a previously resolved element by its elementId.
+      operationId: clickElement
+      x-openai-isConsequential: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - elementId
+              type: object
+              properties:
+                sessionId:
+                  type: string
+                  default: default
+                elementId:
+                  type: string
+                  description: Element handle from selectElement
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  pageId:
+                    type: string
+                  finalUrl:
+                    type: string
+                    nullable: true
+  /mcp/tools/screenshot:
+    post:
+      summary: Take a PNG screenshot of a page for diagnostic purposes.
+      operationId: screenshot
+      x-openai-isConsequential: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - pageId
+              type: object
+              properties:
+                sessionId:
+                  type: string
+                  default: default
+                pageId:
+                  type: string
+                  description: Tab to screenshot
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pageId:
+                    type: string
+                  contentType:
+                    type: string
+                  base64:
+                    type: string
+                    description: Base64-encoded PNG image
+components: { }

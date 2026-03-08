@@ -1,0 +1,33 @@
+{
+    "$schema": "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.5/schema.json",
+    "version": "v1.5",
+    "name": "Incidents",
+    "description": "Declarative agent created with Microsoft 365 Agents Toolkit can assist user in calling APIs and retrieving responses",
+    "instructions": "$[file('instruction.txt')]",
+    "actions": [
+        {
+            "id": "action_1",
+            "file": "ai-plugin.json"
+        }
+    ],
+    "conversation_starters": [
+        {
+            "text": "Open a browser window on the user's machine for interactive intranet sign-in."
+        },
+        {
+            "text": "Click a previously resolved element by its elementId."
+        },
+        {
+            "text": "Return a JSON representation of the DOM for a page."
+        },
+        {
+            "text": "Navigate to a URL. Omit pageId to open a new tab; provide it to reuse an existing tab."
+        },
+        {
+            "text": "Take a PNG screenshot of a page for diagnostic purposes."
+        },
+        {
+            "text": "Resolve a CSS selector to a stable element handle reference."
+        }
+    ]
+}

@@ -1,0 +1,11 @@
+{
+    "broker_url": "ws://localhost:8000/runner/ws",
+    "intranetStartUrl": "https://login.microsoftonline.com",
+    "postLoginUrlPrefix": "https://m365.cloud.microsoft",
+    "session_ttl_minutes": 480,
+    "dom_max_text_length": 200,
+    "heartbeat_interval_seconds": 15,
+    "client_id": "<YOUR_ENTRA_APP_CLIENT_ID>",
+    "tenant_id": "<YOUR_ENTRA_TENANT_ID>",
+    "broker_scope": "api://<BROKER_APP_ID>/.default"
+}

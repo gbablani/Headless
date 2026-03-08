@@ -1,0 +1,9 @@
+fastapi>=0.111,<1
+uvicorn[standard]>=0.29,<1
+pydantic>=2,<3
+websockets>=12,<14
+python-dotenv>=1,<2
+
+# M365 Agents SDK (aiohttp-based server for Teams / Copilot integration)
+microsoft-agents-hosting-aiohttp>=0.1
+aiohttp>=3.9,<4

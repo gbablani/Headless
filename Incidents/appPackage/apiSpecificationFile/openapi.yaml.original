@@ -1,0 +1,348 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Intranet Browser Agent",
+    "description": "Browse intranet pages using a headed browser running on the user's local machine. The broker relays tool calls to a locally-connected Playwright Runner.",
+    "version": "0.3.0"
+  },
+  "servers": [
+    {
+      "url": "https://e189-198-134-98-50.ngrok-free.app",
+      "description": "Broker endpoint (replace with your ngrok / devtunnel URL)"
+    }
+  ],
+  "paths": {
+    "/mcp/tools/sessionStatus": {
+      "post": {
+        "operationId": "sessionStatus",
+        "x-openai-isConsequential": false,
+        "summary": "Check if the Runner is connected and the intranet session is authenticated.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionId": {
+                    "type": "string",
+                    "default": "default",
+                    "description": "Session identifier"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "runnerConnected": { "type": "boolean" },
+                    "authenticated": { "type": "boolean" },
+                    "sessionId": { "type": "string" },
+                    "expiresAt": { "type": "string", "nullable": true },
+                    "openPages": {
+                      "type": "object",
+                      "additionalProperties": { "type": "string" },
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mcp/tools/bootstrapLogin": {
+      "post": {
+        "operationId": "bootstrapLogin",
+        "x-openai-isConsequential": false,
+        "summary": "Open a browser window on the user's machine for interactive intranet sign-in.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionId": {
+                    "type": "string",
+                    "default": "default"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "pageId": { "type": "string", "nullable": true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mcp/tools/navigate": {
+      "post": {
+        "operationId": "navigate",
+        "x-openai-isConsequential": false,
+        "summary": "Navigate to a URL. Omit pageId to open a new tab; provide it to reuse an existing tab.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionId": {
+                    "type": "string",
+                    "default": "default"
+                  },
+                  "url": {
+                    "type": "string",
+                    "description": "The URL to navigate to"
+                  },
+                  "pageId": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Tab to reuse (omit for new tab)"
+                  }
+                },
+                "required": ["url"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "pageId": { "type": "string" },
+                    "finalUrl": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mcp/tools/inspectDom": {
+      "post": {
+        "operationId": "inspectDom",
+        "x-openai-isConsequential": false,
+        "summary": "Return a JSON representation of the DOM for a page.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionId": {
+                    "type": "string",
+                    "default": "default"
+                  },
+                  "pageId": {
+                    "type": "string",
+                    "description": "Tab to inspect"
+                  },
+                  "url": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Optional URL to navigate before inspecting"
+                  }
+                },
+                "required": ["pageId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pageId": { "type": "string" },
+                    "url": { "type": "string" },
+                    "title": { "type": "string" },
+                    "document": {
+                      "type": "object",
+                      "description": "DOM tree"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mcp/tools/selectElement": {
+      "post": {
+        "operationId": "selectElement",
+        "x-openai-isConsequential": false,
+        "summary": "Resolve a CSS selector to a stable element handle reference.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionId": {
+                    "type": "string",
+                    "default": "default"
+                  },
+                  "pageId": {
+                    "type": "string",
+                    "description": "Tab containing the element"
+                  },
+                  "selector": {
+                    "type": "string",
+                    "description": "CSS selector"
+                  }
+                },
+                "required": ["pageId", "selector"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "elementId": { "type": "string" },
+                    "pageId": { "type": "string" },
+                    "selector": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mcp/tools/clickElement": {
+      "post": {
+        "operationId": "clickElement",
+        "x-openai-isConsequential": false,
+        "summary": "Click a previously resolved element by its elementId.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionId": {
+                    "type": "string",
+                    "default": "default"
+                  },
+                  "elementId": {
+                    "type": "string",
+                    "description": "Element handle from selectElement"
+                  }
+                },
+                "required": ["elementId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "pageId": { "type": "string" },
+                    "finalUrl": { "type": "string", "nullable": true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mcp/tools/screenshot": {
+      "post": {
+        "operationId": "screenshot",
+        "x-openai-isConsequential": false,
+        "summary": "Take a PNG screenshot of a page for diagnostic purposes.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionId": {
+                    "type": "string",
+                    "default": "default"
+                  },
+                  "pageId": {
+                    "type": "string",
+                    "description": "Tab to screenshot"
+                  }
+                },
+                "required": ["pageId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pageId": { "type": "string" },
+                    "contentType": { "type": "string" },
+                    "base64": {
+                      "type": "string",
+                      "description": "Base64-encoded PNG image"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

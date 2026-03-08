@@ -1,0 +1,18 @@
+[project]
+name = "headless-runner"
+version = "0.1.0"
+description = "Local Playwright Runner for the ACA MCP Broker"
+requires-python = ">=3.11"
+dependencies = [
+    "playwright>=1.44,<2",
+    "websockets>=12,<14",
+    "pydantic>=2,<3",
+    "msal>=1.28,<2",
+]
+
+[project.scripts]
+runner = "runner.main:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends._legacy:_Backend"

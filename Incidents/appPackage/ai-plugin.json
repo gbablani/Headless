@@ -1,0 +1,60 @@
+{
+    "$schema": "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.3/schema.json",
+    "schema_version": "v2.3",
+    "name_for_human": "Intranet Browser Agent",
+    "description_for_human": "Browse intranet pages using a headed browser running on the user's local machine. The broker relays tool calls to a locally-connected Playwright Runner.",
+    "description_for_model": "Browse intranet pages using a headed browser running on the user's local machine. The broker relays tool calls to a locally-connected Playwright Runner.",
+    "contact_email": "publisher-email@example.com",
+    "namespace": "incidents",
+    "capabilities": {},
+    "functions": [
+        {
+            "name": "bootstrapLogin",
+            "description": "Open a browser window on the user&apos;s machine for interactive intranet sign-in."
+        },
+        {
+            "name": "clickElement",
+            "description": "Click a previously resolved element by its elementId."
+        },
+        {
+            "name": "inspectDom",
+            "description": "Return a JSON representation of the DOM for a page."
+        },
+        {
+            "name": "navigate",
+            "description": "Navigate to a URL. Omit pageId to open a new tab; provide it to reuse an existing tab."
+        },
+        {
+            "name": "screenshot",
+            "description": "Take a PNG screenshot of a page for diagnostic purposes."
+        },
+        {
+            "name": "selectElement",
+            "description": "Resolve a CSS selector to a stable element handle reference."
+        },
+        {
+            "name": "sessionStatus",
+            "description": "Check if the Runner is connected and the intranet session is authenticated."
+        }
+    ],
+    "runtimes": [
+        {
+            "type": "OpenApi",
+            "auth": {
+                "type": "None"
+            },
+            "spec": {
+                "url": "apiSpecificationFile/openapi.yaml"
+            },
+            "run_for_functions": [
+                "sessionStatus",
+                "bootstrapLogin",
+                "navigate",
+                "inspectDom",
+                "selectElement",
+                "clickElement",
+                "screenshot"
+            ]
+        }
+    ]
+}
