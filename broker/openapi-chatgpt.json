@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://e189-198-134-98-50.ngrok-free.app",
+      "url": "https://3b2a-98-237-145-54.ngrok-free.app",
       "description": "Broker endpoint (replace with your ngrok / devtunnel URL)"
     }
   ],

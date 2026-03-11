@@ -1,0 +1,19 @@
+# Runtime output from doc-review workflow
+# These directories are created by MCP filesystem tools during execution
+doc/
+tmp/
+
+# Test artifacts from SDK debugging
+assets/*.txt
+
+# Python cache/build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/

@@ -40,6 +40,9 @@ app = FastAPI(
     title="ACA MCP Broker",
     version="0.1.0",
     description="Model Context Protocol broker that routes tool calls to per-user local Playwright Runners.",
+ servers=[
+        {"url": "https://3b2a-98-237-145-54.ngrok-free.app", "description": "Public tunnel"}
+    ]
 )
 
 # CORS – allow the M365 Copilot origin (adjust for production).

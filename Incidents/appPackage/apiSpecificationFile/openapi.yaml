@@ -4,7 +4,7 @@ info:
   description: Browse intranet pages using a headed browser running on the user's local machine. The broker relays tool calls to a locally-connected Playwright Runner.
   version: 0.3.0
 servers:
-  - url: https://e189-198-134-98-50.ngrok-free.app
+  - url: https://3b2a-98-237-145-54.ngrok-free.app
     description: Broker endpoint (replace with your ngrok / devtunnel URL)
 paths:
   /mcp/tools/sessionStatus:

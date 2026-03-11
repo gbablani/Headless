@@ -1,0 +1,103 @@
+{
+  "servers": {
+    "Deflaker": {
+      "type": "stdio",
+      "command": "dnx",
+      "args": [
+        "Deflaker@1.2026.218.1",
+        "--yes",
+        "--add-source",
+        "https://msazure.pkgs.visualstudio.com/One/_packaging/Azure-Compute-Consumption/nuget/v3/index.json"
+      ],
+      "env": {
+        "Organization": "${input:ado_organization}",
+        "ProjectName": "${input:ado_project}",
+        "RepositoryName": "${input:ado_repository}",
+        "RepositoryPath": "${workspaceFolder}"
+      }
+    },
+    "ado": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure-devops/mcp",
+        "${input:ado_organization}"
+      ]
+    },
+    "code-search": {
+      "url": "https://mcp.engcopilot.net/",
+      "type": "http",
+      "headers": {
+        "x-mcp-ec-organization": "${input:ado_organization}",
+        "x-mcp-ec-project": "${input:ado_project}",
+        "x-mcp-ec-repository": "${input:ado_repository}",
+        "x-mcp-ec-branch": "${input:ado_branch}"
+      }
+    },
+    "enghub": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${env:ENGHUB_MCP_PATH}/dist/cli.js",
+        "start"
+      ],
+      "description": "Engineering Hub documentation search. Clone from https://github.com/azure-core/enghub-mcp-server-tools and set ENGHUB_MCP_PATH environment variable."
+    },
+    "ms-learn": {
+      "url": "https://learn.microsoft.com/api/mcp",
+      "type": "http"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ],
+      "type": "stdio"
+    },
+    "pr-insights": {
+      "url": "https://app-prinsights-01-mcp.azurewebsites.net/",
+      "type": "http"
+    },
+    "work-iq": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@microsoft/workiq",
+        "mcp"
+      ],
+      "description": "Microsoft 365 data search - emails, meetings, documents, Teams messages. Requires tenant admin consent on first use. See https://github.com/microsoft/work-iq-mcp"
+    }
+  },
+  "inputs": [
+    {
+      "id": "ado_organization",
+      "type": "promptString",
+      "description": "Azure DevOps Organization name",
+      "password": false,
+      "default": "ADO_ORG"
+    },
+    {
+      "id": "ado_project",
+      "type": "promptString",
+      "description": "Azure DevOps Project name",
+      "password": false,
+      "default": "ADO_PROJECT"
+    },
+    {
+      "id": "ado_repository",
+      "type": "promptString",
+      "description": "Azure DevOps Repository name",
+      "password": false,
+      "default": "ADO_REPO"
+    },
+    {
+      "id": "ado_branch",
+      "type": "promptString",
+      "description": "Azure DevOps Branch name",
+      "password": false,
+      "default": "ADO_BRANCH"
+    }
+  ]
+}
