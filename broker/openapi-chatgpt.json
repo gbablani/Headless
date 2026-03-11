@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://3b2a-98-237-145-54.ngrok-free.app",
+      "url": "https://7da4-71-231-83-162.ngrok-free.app",
       "description": "Broker endpoint (replace with your ngrok / devtunnel URL)"
     }
   ],
@@ -273,6 +273,126 @@
                   }
                 },
                 "required": ["elementId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "pageId": { "type": "string" },
+                    "finalUrl": { "type": "string", "nullable": true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mcp/tools/fillField": {
+      "post": {
+        "operationId": "fillField",
+        "x-openai-isConsequential": false,
+        "summary": "Fill an input/textarea/select field by selector or by elementId.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionId": {
+                    "type": "string",
+                    "default": "default"
+                  },
+                  "pageId": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Tab containing the target field (required when selector is used)"
+                  },
+                  "selector": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "CSS selector for the target field"
+                  },
+                  "elementId": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Element handle from selectElement"
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "Text/value to fill"
+                  },
+                  "submit": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Press Enter after filling"
+                  }
+                },
+                "required": ["value"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "pageId": { "type": "string" },
+                    "finalUrl": { "type": "string", "nullable": true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mcp/tools/submitForm": {
+      "post": {
+        "operationId": "submitForm",
+        "x-openai-isConsequential": false,
+        "summary": "Submit a form on the current page.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionId": {
+                    "type": "string",
+                    "default": "default"
+                  },
+                  "pageId": {
+                    "type": "string",
+                    "description": "Tab containing the form"
+                  },
+                  "formSelector": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Optional form selector to submit"
+                  },
+                  "submitterSelector": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Optional selector for a submit button/control"
+                  }
+                },
+                "required": ["pageId"]
               }
             }
           }

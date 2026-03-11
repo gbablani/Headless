@@ -148,6 +148,8 @@ HELP_TEXT = (
     "- **Navigate** — \"Go to https://portal.microsofticm.com/...\"\n"
     "- **Inspect page** — \"What's on the current page?\"\n"
     "- **Click** — \"Click the Active Outages link\"\n"
+    "- **Fill field** — \"Fill #username with alice@example.com\"\n"
+    "- **Submit form** — \"Submit form #loginForm\"\n"
     "- **Screenshot** — \"Take a screenshot\"\n\n"
     "Make sure the **Runner** is running on your Windows machine."
 )
@@ -264,6 +266,47 @@ async def on_message(context: TurnContext, _: TurnState):
             except (json.JSONDecodeError, TypeError):
                 result = sel_result
         await context.send_activity(f"**Click result:**\n```json\n{result}\n```")
+        return
+
+    # --- Fill field ---
+    if text.startswith(("fill ", "type ", "enter ")):
+        # Supported pattern: "fill <selector> with <value>"
+        parts = text.split(" with ", 1)
+        if len(parts) != 2:
+            await context.send_activity(
+                "Please use: **fill <selector> with <value>** (example: fill #username with alice@example.com)."
+            )
+            return
+
+        lhs, value = parts[0], parts[1]
+        selector = lhs
+        for prefix in ["fill ", "type ", "enter "]:
+            if lhs.startswith(prefix):
+                selector = lhs[len(prefix):].strip().strip("\"'")
+                break
+
+        result = await _dispatch_tool(context, "fillField", {
+            "selector": selector,
+            "value": value.strip().strip("\"'"),
+        })
+        await context.send_activity(f"**Fill result:**\n```json\n{result}\n```")
+        return
+
+    # --- Submit form ---
+    if text.startswith(("submit", "send form", "submit form")):
+        form_selector = None
+        for prefix in ["submit form ", "submit ", "send form "]:
+            if text.startswith(prefix):
+                maybe = text[len(prefix):].strip().strip("\"'")
+                if maybe:
+                    form_selector = maybe
+                break
+
+        params: dict = {}
+        if form_selector:
+            params["formSelector"] = form_selector
+        result = await _dispatch_tool(context, "submitForm", params)
+        await context.send_activity(f"**Submit result:**\n```json\n{result}\n```")
         return
 
     # --- Fallback ---

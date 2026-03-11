@@ -18,6 +18,9 @@
             "text": "Click a previously resolved element by its elementId."
         },
         {
+            "text": "Fill #username with alice@example.com on the current page."
+        },
+        {
             "text": "Return a JSON representation of the DOM for a page."
         },
         {
@@ -28,6 +31,9 @@
         },
         {
             "text": "Resolve a CSS selector to a stable element handle reference."
+        },
+        {
+            "text": "Submit form #loginForm on the current page."
         }
     ]
 }

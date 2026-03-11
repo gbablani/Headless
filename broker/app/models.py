@@ -115,6 +115,34 @@ class ClickElementOutput(BaseModel):
     finalUrl: Optional[str] = None
 
 
+class FillFieldInput(BaseModel):
+    sessionId: str = "default"
+    pageId: Optional[str] = None
+    selector: Optional[str] = None
+    elementId: Optional[str] = None
+    value: str
+    submit: bool = False
+
+
+class FillFieldOutput(BaseModel):
+    status: str = "ok"
+    pageId: Optional[str] = None
+    finalUrl: Optional[str] = None
+
+
+class SubmitFormInput(BaseModel):
+    sessionId: str = "default"
+    pageId: Optional[str] = None
+    formSelector: Optional[str] = None
+    submitterSelector: Optional[str] = None
+
+
+class SubmitFormOutput(BaseModel):
+    status: str = "ok"
+    pageId: Optional[str] = None
+    finalUrl: Optional[str] = None
+
+
 class ScreenshotInput(BaseModel):
     sessionId: str = "default"
     pageId: Optional[str] = None

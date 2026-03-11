@@ -17,6 +17,10 @@
             "description": "Click a previously resolved element by its elementId."
         },
         {
+            "name": "fillField",
+            "description": "Fill an input/textarea/select field by selector or by elementId."
+        },
+        {
             "name": "inspectDom",
             "description": "Return a JSON representation of the DOM for a page."
         },
@@ -31,6 +35,10 @@
         {
             "name": "selectElement",
             "description": "Resolve a CSS selector to a stable element handle reference."
+        },
+        {
+            "name": "submitForm",
+            "description": "Submit a form on the current page."
         },
         {
             "name": "sessionStatus",
@@ -53,6 +61,8 @@
                 "inspectDom",
                 "selectElement",
                 "clickElement",
+                "fillField",
+                "submitForm",
                 "screenshot"
             ]
         }

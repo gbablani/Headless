@@ -41,7 +41,7 @@ app = FastAPI(
     version="0.1.0",
     description="Model Context Protocol broker that routes tool calls to per-user local Playwright Runners.",
  servers=[
-        {"url": "https://3b2a-98-237-145-54.ngrok-free.app", "description": "Public tunnel"}
+        {"url": "https://7da4-71-231-83-162.ngrok-free.app", "description": "Public tunnel"}
     ]
 )
 

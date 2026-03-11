@@ -155,6 +155,112 @@ async def handle_click_element(
     return {"status": "ok", "pageId": page_id, "finalUrl": page.url}
 
 
+async def handle_fill_field(
+    bm: BrowserManager, params: Dict[str, Any]
+) -> Dict[str, Any]:
+    session_id = params.get("sessionId", "default")
+    page_id: Optional[str] = params.get("pageId")
+    selector: Optional[str] = params.get("selector")
+    element_id: Optional[str] = params.get("elementId")
+    value = params["value"]
+    submit = bool(params.get("submit", False))
+
+    if not selector and not element_id:
+        raise RuntimeError("INVALID_ARGUMENT: provide either 'selector' or 'elementId'")
+
+    sess = await bm.get_or_create_session(session_id)
+    if not sess.authenticated:
+        raise RuntimeError("SESSION_NOT_AUTHENTICATED")
+
+    if element_id:
+        el = sess.get_element(element_id)
+        if el is None:
+            raise RuntimeError(f"ELEMENT_NOT_FOUND: element '{element_id}' not found or expired")
+        page_id, locator = el
+        page = sess.get_page(page_id)
+        if page is None:
+            raise RuntimeError(
+                f"PAGE_NOT_FOUND: tab '{page_id}' (owning element '{element_id}') was closed"
+            )
+    else:
+        page = _resolve_page(sess, page_id)
+        locator = page.locator(selector).first  # type: ignore[arg-type]
+        await locator.wait_for(state="attached", timeout=5000)
+
+    await locator.fill(value)
+
+    if submit:
+        await locator.press("Enter")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except PlaywrightError:
+            # Some forms submit via XHR and do not trigger a full navigation.
+            pass
+
+    return {"status": "ok", "pageId": page_id, "finalUrl": page.url}
+
+
+async def handle_submit_form(
+    bm: BrowserManager, params: Dict[str, Any]
+) -> Dict[str, Any]:
+    session_id = params.get("sessionId", "default")
+    page_id: Optional[str] = params.get("pageId")
+    form_selector: Optional[str] = params.get("formSelector")
+    submitter_selector: Optional[str] = params.get("submitterSelector")
+
+    sess = await bm.get_or_create_session(session_id)
+    if not sess.authenticated:
+        raise RuntimeError("SESSION_NOT_AUTHENTICATED")
+
+    page = _resolve_page(sess, page_id)
+
+    if submitter_selector:
+        submitter = page.locator(submitter_selector).first
+        await submitter.wait_for(state="attached", timeout=5000)
+        await submitter.click()
+    elif form_selector:
+        ok = await page.evaluate(
+            """(sel) => {
+                const form = document.querySelector(sel);
+                if (!form || !(form instanceof HTMLFormElement)) return false;
+                if (typeof form.requestSubmit === 'function') {
+                    form.requestSubmit();
+                } else {
+                    form.submit();
+                }
+                return true;
+            }""",
+            form_selector,
+        )
+        if not ok:
+            raise RuntimeError(f"FORM_NOT_FOUND: selector '{form_selector}' did not match a form")
+    else:
+        ok = await page.evaluate(
+            """() => {
+                const active = document.activeElement;
+                const activeForm = active && active.closest ? active.closest('form') : null;
+                const form = activeForm || document.querySelector('form');
+                if (!form || !(form instanceof HTMLFormElement)) return false;
+                if (typeof form.requestSubmit === 'function') {
+                    form.requestSubmit();
+                } else {
+                    form.submit();
+                }
+                return true;
+            }"""
+        )
+        if not ok:
+            raise RuntimeError("FORM_NOT_FOUND: no form found to submit")
+
+    try:
+        await page.wait_for_load_state("domcontentloaded", timeout=5000)
+    except PlaywrightError:
+        # Some forms submit via XHR and do not trigger a full navigation.
+        pass
+
+    return {"status": "ok", "pageId": page_id, "finalUrl": page.url}
+
+
 async def handle_screenshot(
     bm: BrowserManager, params: Dict[str, Any]
 ) -> Dict[str, Any]:
@@ -180,6 +286,8 @@ TOOL_HANDLERS = {
     "inspectDom": handle_inspect_dom,
     "selectElement": handle_select_element,
     "clickElement": handle_click_element,
+    "fillField": handle_fill_field,
+    "submitForm": handle_submit_form,
     "screenshot": handle_screenshot,
 }
 

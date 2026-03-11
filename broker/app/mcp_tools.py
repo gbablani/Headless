@@ -22,6 +22,8 @@ from .models import (
     ClickElementInput,
     ClickElementOutput,
     ErrorCode,
+    FillFieldInput,
+    FillFieldOutput,
     InspectDomInput,
     InspectDomOutput,
     NavigateInput,
@@ -30,6 +32,8 @@ from .models import (
     ScreenshotOutput,
     SelectElementInput,
     SelectElementOutput,
+    SubmitFormInput,
+    SubmitFormOutput,
     SessionStatusInput,
     SessionStatusOutput,
     UserKey,
@@ -133,6 +137,16 @@ async def click_element(body: ClickElementInput, user: UserKey = Depends(require
     return await _dispatch(user, "clickElement", body.model_dump())
 
 
+@router.post("/fillField")
+async def fill_field(body: FillFieldInput, user: UserKey = Depends(require_user)):
+    return await _dispatch(user, "fillField", body.model_dump())
+
+
+@router.post("/submitForm")
+async def submit_form(body: SubmitFormInput, user: UserKey = Depends(require_user)):
+    return await _dispatch(user, "submitForm", body.model_dump())
+
+
 @router.post("/screenshot")
 async def screenshot(body: ScreenshotInput, user: UserKey = Depends(require_user)):
     return await _dispatch(user, "screenshot", body.model_dump())
@@ -172,6 +186,16 @@ MCP_TOOLS_MANIFEST = [
         "name": "clickElement",
         "description": "Click a previously resolved element by its elementId.",
         "inputSchema": ClickElementInput.model_json_schema(),
+    },
+    {
+        "name": "fillField",
+        "description": "Fill an input/textarea/select field by selector or elementId.",
+        "inputSchema": FillFieldInput.model_json_schema(),
+    },
+    {
+        "name": "submitForm",
+        "description": "Submit a form by selector, submit control selector, or active element context.",
+        "inputSchema": SubmitFormInput.model_json_schema(),
     },
     {
         "name": "screenshot",
