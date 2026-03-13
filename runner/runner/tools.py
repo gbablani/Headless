@@ -82,7 +82,9 @@ async def handle_navigate(
 
     sess.clear_elements(page_id)
     logger.info("Navigating tab %s to %s", page_id, url)
+    await bm.human_pause(200, 900)
     await page.goto(url, wait_until="domcontentloaded")
+    await bm.human_after_navigation(page)
     return {"status": "ok", "pageId": page_id, "finalUrl": page.url}
 
 
@@ -150,8 +152,10 @@ async def handle_click_element(
             f"PAGE_NOT_FOUND: tab '{page_id}' (owning element '{element_id}') was closed"
         )
 
-    await locator.click()
+    await bm.human_pause(120, 500)
+    await locator.click(delay=bm.human_typing_delay_ms())
     await page.wait_for_load_state("domcontentloaded")
+    await bm.human_pause(120, 500)
     return {"status": "ok", "pageId": page_id, "finalUrl": page.url}
 
 
@@ -187,7 +191,11 @@ async def handle_fill_field(
         locator = page.locator(selector).first  # type: ignore[arg-type]
         await locator.wait_for(state="attached", timeout=5000)
 
-    await locator.fill(value)
+    await bm.human_pause(120, 600)
+    await locator.click(delay=bm.human_typing_delay_ms())
+    await locator.fill("")
+    await locator.type(value, delay=bm.human_typing_delay_ms())
+    await bm.human_pause(120, 400)
 
     if submit:
         await locator.press("Enter")
@@ -217,8 +225,10 @@ async def handle_submit_form(
     if submitter_selector:
         submitter = page.locator(submitter_selector).first
         await submitter.wait_for(state="attached", timeout=5000)
-        await submitter.click()
+        await bm.human_pause(120, 500)
+        await submitter.click(delay=bm.human_typing_delay_ms())
     elif form_selector:
+        await bm.human_pause(120, 500)
         ok = await page.evaluate(
             """(sel) => {
                 const form = document.querySelector(sel);
@@ -235,6 +245,7 @@ async def handle_submit_form(
         if not ok:
             raise RuntimeError(f"FORM_NOT_FOUND: selector '{form_selector}' did not match a form")
     else:
+        await bm.human_pause(120, 500)
         ok = await page.evaluate(
             """() => {
                 const active = document.activeElement;

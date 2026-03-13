@@ -12,6 +12,7 @@ import base64
 import datetime as _dt
 import logging
 import os
+import random
 import uuid
 from typing import Any, Dict, Optional
 
@@ -131,13 +132,63 @@ class BrowserManager:
         profile_dir = os.environ.get("RUNNER_PROFILE_DIR", _DEFAULT_PROFILE_DIR)
         os.makedirs(profile_dir, exist_ok=True)
         assert self._pw is not None
+
+        launch_kwargs: Dict[str, Any] = {
+            "channel": "msedge",
+            "headless": False,
+            "args": ["--no-first-run", "--disable-popup-blocking"],
+            "locale": self.config.browser_locale,
+            "viewport": {
+                "width": self.config.viewport_width,
+                "height": self.config.viewport_height,
+            },
+        }
+        if self.config.browser_timezone_id:
+            launch_kwargs["timezone_id"] = self.config.browser_timezone_id
+        if self.config.browser_user_agent:
+            launch_kwargs["user_agent"] = self.config.browser_user_agent
+
         self._context = await self._pw.chromium.launch_persistent_context(
             profile_dir,
-            channel="msedge",
-            headless=False,
-            args=["--no-first-run", "--disable-popup-blocking"],
+            **launch_kwargs,
         )
         logger.info("Browser started (headed, Edge, profile=%s)", profile_dir)
+
+    # ------------------------------------------------------------------
+    # Human-like pacing helpers
+    # ------------------------------------------------------------------
+
+    async def human_pause(self, min_ms: Optional[int] = None, max_ms: Optional[int] = None) -> None:
+        """Sleep for a small random interval to avoid robotic timing patterns."""
+        lo = self.config.human_delay_min_ms if min_ms is None else min_ms
+        hi = self.config.human_delay_max_ms if max_ms is None else max_ms
+        lo = max(0, lo)
+        hi = max(lo, hi)
+        await asyncio.sleep(random.uniform(lo, hi) / 1000.0)
+
+    def human_typing_delay_ms(self) -> int:
+        """Return a per-keystroke delay in ms for human-like typing."""
+        lo = max(0, self.config.typing_delay_min_ms)
+        hi = max(lo, self.config.typing_delay_max_ms)
+        return random.randint(lo, hi)
+
+    async def human_after_navigation(self, page: Page) -> None:
+        """Apply tiny post-navigation interactions that resemble normal browsing."""
+        await self.human_pause(200, 700)
+        if not self.config.human_scroll_after_navigation:
+            return
+        try:
+            await page.evaluate(
+                """() => {
+                    const amount = Math.floor(80 + Math.random() * 220);
+                    window.scrollBy({ top: amount, behavior: 'smooth' });
+                }"""
+            )
+            await self.human_pause(120, 320)
+            await page.evaluate("window.scrollBy({ top: -80, behavior: 'smooth' })")
+        except Exception:
+            # Non-fatal: some pages disallow scrolling while loading.
+            logger.debug("Skipping post-navigation scroll simulation", exc_info=True)
 
     async def restart_browser(self) -> None:
         """Close the crashed/dead context and launch a fresh one.

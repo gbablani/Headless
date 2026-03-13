@@ -19,6 +19,20 @@ class RunnerConfig(BaseModel):
     session_ttl_minutes: int = int(os.getenv("SESSION_TTL_MINUTES", "480"))
     dom_max_text_length: int = int(os.getenv("DOM_MAX_TEXT_LENGTH", "200"))
     heartbeat_interval_seconds: int = int(os.getenv("HEARTBEAT_INTERVAL_SECONDS", "15"))
+    # Human-like browsing knobs.
+    human_delay_min_ms: int = int(os.getenv("HUMAN_DELAY_MIN_MS", "250"))
+    human_delay_max_ms: int = int(os.getenv("HUMAN_DELAY_MAX_MS", "1200"))
+    typing_delay_min_ms: int = int(os.getenv("TYPING_DELAY_MIN_MS", "40"))
+    typing_delay_max_ms: int = int(os.getenv("TYPING_DELAY_MAX_MS", "120"))
+    human_scroll_after_navigation: bool = (
+        os.getenv("HUMAN_SCROLL_AFTER_NAVIGATION", "true").lower() in ("1", "true", "yes")
+    )
+    # Optional browser context hints.
+    browser_locale: str = os.getenv("BROWSER_LOCALE", "en-US")
+    browser_timezone_id: Optional[str] = os.getenv("BROWSER_TIMEZONE_ID", None)
+    browser_user_agent: Optional[str] = os.getenv("BROWSER_USER_AGENT", None)
+    viewport_width: int = int(os.getenv("BROWSER_VIEWPORT_WIDTH", "1366"))
+    viewport_height: int = int(os.getenv("BROWSER_VIEWPORT_HEIGHT", "768"))
     # Entra client app registration for device-code flow.
     client_id: str = os.getenv("RUNNER_CLIENT_ID", "")
     tenant_id: str = os.getenv("RUNNER_TENANT_ID", "")

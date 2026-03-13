@@ -79,3 +79,13 @@ The executable is created at `dist/runner.exe`.
 | `SESSION_TTL_MINUTES` | `480` | Session time-to-live |
 | `DOM_MAX_TEXT_LENGTH` | `200` | Max text length in DOM nodes |
 | `HEARTBEAT_INTERVAL_SECONDS` | `15` | Heartbeat interval |
+| `HUMAN_DELAY_MIN_MS` | `250` | Minimum random delay between actions |
+| `HUMAN_DELAY_MAX_MS` | `1200` | Maximum random delay between actions |
+| `TYPING_DELAY_MIN_MS` | `40` | Minimum per-keystroke delay |
+| `TYPING_DELAY_MAX_MS` | `120` | Maximum per-keystroke delay |
+| `HUMAN_SCROLL_AFTER_NAVIGATION` | `true` | Perform short post-navigation scroll jitter |
+| `BROWSER_LOCALE` | `en-US` | Browser locale presented to websites |
+| `BROWSER_TIMEZONE_ID` | *(empty)* | Optional browser timezone id (for example `America/Los_Angeles`) |
+| `BROWSER_USER_AGENT` | *(empty)* | Optional user agent override |
+| `BROWSER_VIEWPORT_WIDTH` | `1366` | Browser viewport width |
+| `BROWSER_VIEWPORT_HEIGHT` | `768` | Browser viewport height |
