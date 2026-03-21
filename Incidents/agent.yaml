@@ -1,0 +1,12 @@
+name: incidents-agent
+description: Incident investigation agent that uses broker-hosted MCP HTTP tools for authenticated browser automation.
+template:
+  kind: hosted
+  protocols:
+    - type: responses
+      version: v1
+  environment_variables:
+    - FOUNDRY_PROJECT_ENDPOINT
+    - FOUNDRY_AGENT_NAME
+    - FOUNDRY_MODEL_DEPLOYMENT_NAME
+    - BROKER_BASE_URL

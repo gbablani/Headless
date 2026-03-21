@@ -1,4 +1,4 @@
-# TeamsFx files
+# Legacy M365 local files
 env/.env.*.user
 env/.env.local
 .localConfigs
@@ -23,3 +23,8 @@ __pycache__/
 build/
 dist/
 *.egg-info/
+
+# Foundry local state
+.foundry/results/
+.foundry/datasets/
+.foundry/evaluators/

@@ -37,6 +37,13 @@ and customise:
 }
 ```
 
+To launch regular Edge as an external process (instead of Playwright launching it),
+set `BROWSER_LAUNCH_MODE=edge-external`.
+
+To attach to an already-running Edge instance (started with remote debugging),
+set `EDGE_ATTACH_TO_RUNNING=true`. If attach fails, the Runner will launch a
+new Edge process unless `EDGE_LAUNCH_IF_ATTACH_FAILS=false`.
+
 ## Commands
 
 | Command | Description |
@@ -72,6 +79,11 @@ The executable is created at `dist/runner.exe`.
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `BROKER_URL` | `ws://localhost:3978/runner/ws` | Broker WebSocket URL |
+| `BROWSER_LAUNCH_MODE` | `edge-external` | `playwright` or `edge-external` |
+| `EDGE_EXECUTABLE_PATH` | *(auto-detect)* | Optional full path to `msedge.exe` |
+| `EDGE_REMOTE_DEBUGGING_PORT` | `9222` | CDP port used when `BROWSER_LAUNCH_MODE=edge-external` |
+| `EDGE_ATTACH_TO_RUNNING` | `true` | Try attaching to an existing Edge CDP endpoint first |
+| `EDGE_LAUNCH_IF_ATTACH_FAILS` | `true` | Launch a new Edge process if attach mode cannot connect |
 | `RUNNER_CLIENT_ID` | *(empty)* | Entra app client ID |
 | `RUNNER_TENANT_ID` | *(empty)* | Entra tenant ID |
 | `RUNNER_BROKER_SCOPE` | *(empty)* | Broker API scope |

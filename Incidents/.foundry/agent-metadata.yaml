@@ -1,0 +1,14 @@
+version: 1
+agentRoot: .
+defaultEnvironment: local
+environments:
+  local:
+    projectEndpoint: ${FOUNDRY_PROJECT_ENDPOINT}
+    agentName: ${FOUNDRY_AGENT_NAME}
+    azureContainerRegistry: ""
+    testCases: []
+  dev:
+    projectEndpoint: ${FOUNDRY_PROJECT_ENDPOINT}
+    agentName: incidents-agent
+    azureContainerRegistry: ""
+    testCases: []

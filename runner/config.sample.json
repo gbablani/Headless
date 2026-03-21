@@ -1,5 +1,10 @@
 {
     "broker_url": "ws://localhost:8000/runner/ws",
+    "browser_launch_mode": "edge-external",
+    "edge_executable_path": null,
+    "edge_remote_debugging_port": 9222,
+    "edge_attach_to_running": true,
+    "edge_launch_if_attach_fails": true,
     "intranetStartUrl": "https://login.microsoftonline.com",
     "postLoginUrlPrefix": "https://m365.cloud.microsoft",
     "session_ttl_minutes": 480,

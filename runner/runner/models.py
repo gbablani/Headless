@@ -13,6 +13,15 @@ from pydantic import BaseModel, Field
 # ---------------------------------------------------------------------------
 class RunnerConfig(BaseModel):
     broker_url: str = os.getenv("BROKER_URL", "ws://localhost:8000/runner/ws")
+    browser_launch_mode: str = os.getenv("BROWSER_LAUNCH_MODE", "edge-external")
+    edge_executable_path: Optional[str] = os.getenv("EDGE_EXECUTABLE_PATH", None)
+    edge_remote_debugging_port: int = int(os.getenv("EDGE_REMOTE_DEBUGGING_PORT", "9222"))
+    edge_attach_to_running: bool = (
+        os.getenv("EDGE_ATTACH_TO_RUNNING", "true").lower() in ("1", "true", "yes")
+    )
+    edge_launch_if_attach_fails: bool = (
+        os.getenv("EDGE_LAUNCH_IF_ATTACH_FAILS", "true").lower() in ("1", "true", "yes")
+    )
     # Intranet site settings (single site).
     intranetStartUrl: str = os.getenv("INTRANET_START_URL", "https://login.microsoftonline.com")
     postLoginUrlPrefix: Optional[str] = os.getenv("POST_LOGIN_URL_PREFIX", None)

@@ -10,9 +10,15 @@ from __future__ import annotations
 import asyncio
 import base64
 import datetime as _dt
+import json
 import logging
 import os
 import random
+import shutil
+import subprocess
+import time
+import urllib.error
+import urllib.request
 import uuid
 from typing import Any, Dict, Optional
 
@@ -116,6 +122,8 @@ class BrowserManager:
         self.config = config
         self._pw: Optional[Playwright] = None
         self._context: Optional[BrowserContext] = None
+        self._cdp_browser: Optional[Any] = None
+        self._edge_proc: Optional[subprocess.Popen] = None
         self._sessions: Dict[str, Session] = {}  # key = sessionId
         self._lock = asyncio.Lock()
 
@@ -129,6 +137,11 @@ class BrowserManager:
 
     async def _launch_context(self) -> None:
         """(Re)launch the persistent browser context."""
+        launch_mode = (self.config.browser_launch_mode or "playwright").lower()
+        if launch_mode == "edge-external":
+            await self._launch_external_edge_context()
+            return
+
         profile_dir = os.environ.get("RUNNER_PROFILE_DIR", _DEFAULT_PROFILE_DIR)
         os.makedirs(profile_dir, exist_ok=True)
         assert self._pw is not None
@@ -153,6 +166,143 @@ class BrowserManager:
             **launch_kwargs,
         )
         logger.info("Browser started (headed, Edge, profile=%s)", profile_dir)
+
+    async def _launch_external_edge_context(self) -> None:
+        """Launch regular Edge and attach Playwright via CDP."""
+        profile_dir = os.environ.get("RUNNER_PROFILE_DIR", _DEFAULT_PROFILE_DIR)
+        os.makedirs(profile_dir, exist_ok=True)
+        assert self._pw is not None
+
+        if self.config.edge_attach_to_running:
+            attached = await self._try_attach_existing_edge()
+            if attached:
+                return
+            if not self.config.edge_launch_if_attach_fails:
+                raise RuntimeError(
+                    "EDGE_ATTACH_FAILED: Could not attach to a running Edge instance "
+                    f"on ports {self.config.edge_remote_debugging_port}-{self.config.edge_remote_debugging_port + 5}."
+                )
+
+        edge_path = self._resolve_edge_executable()
+        base_port = self.config.edge_remote_debugging_port
+        last_err: Optional[Exception] = None
+        ws_url: Optional[str] = None
+        used_port: Optional[int] = None
+
+        for port in range(base_port, base_port + 6):
+            args = [
+                edge_path,
+                f"--remote-debugging-port={port}",
+                f"--user-data-dir={profile_dir}",
+                "--no-first-run",
+                "--disable-popup-blocking",
+                f"--lang={self.config.browser_locale}",
+                "about:blank",
+            ]
+
+            self._edge_proc = subprocess.Popen(
+                args,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+
+            try:
+                ws_url = await asyncio.to_thread(self._wait_for_cdp_ws_url, port, 15.0)
+                used_port = port
+                break
+            except RuntimeError as exc:
+                last_err = exc
+                logger.warning("CDP not reachable on port %s, trying next port", port)
+                if self._edge_proc and self._edge_proc.poll() is None:
+                    self._edge_proc.terminate()
+                    try:
+                        self._edge_proc.wait(timeout=2)
+                    except subprocess.TimeoutExpired:
+                        self._edge_proc.kill()
+                self._edge_proc = None
+
+        if ws_url is None:
+            raise RuntimeError(
+                "CDP_CONNECT_TIMEOUT: Could not connect to Edge remote debugging endpoint "
+                f"on ports {base_port}-{base_port + 5}: {last_err}"
+            )
+
+        await self._attach_to_cdp_browser(ws_url)
+        logger.info(
+            "Browser started (external Edge via CDP, profile=%s, port=%s)",
+            profile_dir,
+            used_port,
+        )
+
+    async def _attach_to_cdp_browser(self, ws_url: str) -> None:
+        """Attach Playwright to an existing CDP endpoint and bind a context."""
+        assert self._pw is not None
+        self._cdp_browser = await self._pw.chromium.connect_over_cdp(ws_url)
+        if self._cdp_browser.contexts:
+            self._context = self._cdp_browser.contexts[0]
+        else:
+            self._context = await self._cdp_browser.new_context(
+                viewport={
+                    "width": self.config.viewport_width,
+                    "height": self.config.viewport_height,
+                },
+                user_agent=self.config.browser_user_agent,
+                locale=self.config.browser_locale,
+                timezone_id=self.config.browser_timezone_id,
+            )
+
+    async def _try_attach_existing_edge(self) -> bool:
+        """Try to attach to an already-running Edge exposing CDP on the configured port range."""
+        base_port = self.config.edge_remote_debugging_port
+        for port in range(base_port, base_port + 6):
+            try:
+                ws_url = await asyncio.to_thread(self._wait_for_cdp_ws_url, port, 1.5)
+                await self._attach_to_cdp_browser(ws_url)
+                logger.info("Attached to running Edge via CDP on port %s", port)
+                return True
+            except Exception:
+                continue
+        return False
+
+    def _resolve_edge_executable(self) -> str:
+        if self.config.edge_executable_path:
+            return self.config.edge_executable_path
+
+        candidates = [
+            os.path.join(os.environ.get("PROGRAMFILES", r"C:\Program Files"), "Microsoft", "Edge", "Application", "msedge.exe"),
+            os.path.join(os.environ.get("PROGRAMFILES(X86)", r"C:\Program Files (x86)"), "Microsoft", "Edge", "Application", "msedge.exe"),
+        ]
+        for c in candidates:
+            if os.path.exists(c):
+                return c
+
+        which = shutil.which("msedge")
+        if which:
+            return which
+
+        raise RuntimeError(
+            "EDGE_NOT_FOUND: Could not locate msedge.exe. Set EDGE_EXECUTABLE_PATH or install Microsoft Edge."
+        )
+
+    def _wait_for_cdp_ws_url(self, port: int, timeout_s: float) -> str:
+        deadline = time.time() + timeout_s
+        url = f"http://127.0.0.1:{port}/json/version"
+        last_err: Optional[Exception] = None
+        while time.time() < deadline:
+            try:
+                with urllib.request.urlopen(url, timeout=1.0) as resp:
+                    payload = resp.read().decode("utf-8", errors="ignore")
+                data = json.loads(payload)
+                ws_url = data.get("webSocketDebuggerUrl")
+                if isinstance(ws_url, str) and ws_url:
+                    return ws_url
+            except (urllib.error.URLError, TimeoutError, OSError) as exc:
+                last_err = exc
+            except (json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+                last_err = exc
+            time.sleep(0.2)
+        raise RuntimeError(f"CDP_CONNECT_TIMEOUT: Edge remote debugging endpoint not ready on port {port}: {last_err}")
 
     # ------------------------------------------------------------------
     # Human-like pacing helpers
@@ -216,8 +366,18 @@ class BrowserManager:
         self._sessions.clear()
         if self._context:
             await self._context.close()
+        if self._cdp_browser:
+            await self._cdp_browser.close()
+            self._cdp_browser = None
         if self._pw:
             await self._pw.stop()
+        if self._edge_proc and self._edge_proc.poll() is None:
+            self._edge_proc.terminate()
+            try:
+                self._edge_proc.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                self._edge_proc.kill()
+        self._edge_proc = None
         logger.info("Browser stopped")
 
     # ------------------------------------------------------------------
